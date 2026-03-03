@@ -3,8 +3,8 @@ import ImageGallery from "./ImageGallery";
 
 export default function EpisodePlayer({ episode }) {
   const videoRef = useRef(null);
-  const bgVideoRef = useRef(null); // ✅ background video
-  const containerRef = useRef(null); // ✅ fullscreen container
+  const bgVideoRef = useRef(null);
+  const containerRef = useRef(null);
   const controlTimer = useRef(null);
 
   const [playing, setPlaying] = useState(false);
@@ -12,8 +12,18 @@ export default function EpisodePlayer({ episode }) {
   const [muted, setMuted] = useState(true);
   const [showControls, setShowControls] = useState(true);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   useEffect(() => {
     return () => clearTimeout(controlTimer.current);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   if (!episode) return null;
@@ -28,11 +38,11 @@ export default function EpisodePlayer({ episode }) {
 
     if (videoRef.current.paused) {
       videoRef.current.play();
-      bgVideoRef.current.play(); // ✅ sync play
+      bgVideoRef.current.play();
       setPlaying(true);
     } else {
       videoRef.current.pause();
-      bgVideoRef.current.pause(); // ✅ sync pause
+      bgVideoRef.current.pause();
       setPlaying(false);
     }
 
@@ -54,7 +64,7 @@ export default function EpisodePlayer({ episode }) {
     const { currentTime, duration } = videoRef.current;
     setProgress((currentTime / duration) * 100);
 
-    syncVideos(); // ✅ keep background synced
+    syncVideos();
   };
 
   const seek = (e) => {
@@ -70,7 +80,7 @@ export default function EpisodePlayer({ episode }) {
     videoRef.current.currentTime = newTime;
 
     if (bgVideoRef.current) {
-      bgVideoRef.current.currentTime = newTime; // ✅ sync seek
+      bgVideoRef.current.currentTime = newTime;
     }
   };
 
@@ -84,7 +94,7 @@ export default function EpisodePlayer({ episode }) {
     if (!containerRef.current) return;
 
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen(); // ✅ FULL container
+      containerRef.current.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
@@ -93,17 +103,17 @@ export default function EpisodePlayer({ episode }) {
   if (episode.video) {
     return (
       <div
-        ref={containerRef} // ✅ FULLSCREEN TARGET
+        ref={containerRef}
         onMouseMove={resetControlTimer}
         style={{
           position: "relative",
-          borderRadius: "8px",
+          borderRadius: isMobile ? "4px" : "8px",
           overflow: "hidden",
           background: "#000",
           cursor: "pointer",
         }}
       >
-        {/* 🔥 BLUR BACKGROUND VIDEO */}
+        {/* BACKGROUND VIDEO */}
         <video
           ref={bgVideoRef}
           src={episode.video}
@@ -122,7 +132,7 @@ export default function EpisodePlayer({ episode }) {
           }}
         />
 
-        {/* 🎬 MAIN VIDEO */}
+        {/* MAIN VIDEO */}
         <video
           ref={videoRef}
           src={episode.video}
@@ -138,6 +148,7 @@ export default function EpisodePlayer({ episode }) {
             objectFit: "contain",
             position: "relative",
             zIndex: 1,
+            maxHeight: isMobile ? "50vh" : "none",
           }}
         />
 
@@ -145,9 +156,9 @@ export default function EpisodePlayer({ episode }) {
         <div
           style={{
             position: "absolute",
-            bottom: "0",
+            bottom: 0,
             width: "100%",
-            padding: "14px 18px",
+            padding: isMobile ? "10px 12px" : "14px 18px",
             background:
               "linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.4), transparent)",
             opacity: showControls ? 1 : 0,
@@ -155,7 +166,6 @@ export default function EpisodePlayer({ episode }) {
             zIndex: 2,
           }}
         >
-          {/* PROGRESS */}
           <div
             onClick={seek}
             style={{
@@ -164,7 +174,6 @@ export default function EpisodePlayer({ episode }) {
               borderRadius: "4px",
               marginBottom: "12px",
               cursor: "pointer",
-              position: "relative",
             }}
           >
             <div
@@ -173,14 +182,12 @@ export default function EpisodePlayer({ episode }) {
                 width: `${progress}%`,
                 background: "#E50914",
                 borderRadius: "4px",
-                position: "relative",
               }}
             />
           </div>
 
-          {/* CONTROLS ROW */}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={(e) => {e.stopPropagation(); togglePlay();}} style={btn}>
                 {playing ? "⏸" : "▶"}
               </button>
@@ -213,12 +220,12 @@ export default function EpisodePlayer({ episode }) {
                 togglePlay();
               }}
               style={{
-                width: "70px",
-                height: "70px",
+                width: isMobile ? "50px" : "70px",
+                height: isMobile ? "50px" : "70px",
                 borderRadius: "50%",
                 background: "#E50914",
                 color: "#fff",
-                fontSize: "28px",
+                fontSize: isMobile ? "22px" : "28px",
                 border: "none",
                 cursor: "pointer",
                 boxShadow: "0 0 20px rgba(229,9,20,0.6)",

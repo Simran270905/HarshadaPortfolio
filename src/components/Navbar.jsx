@@ -1,6 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Navbar({ navigate, scrolled, currentRoute }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 900);
+      if (window.innerWidth >= 900) setMenuOpen(false);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const links = [
     { label: "Home", path: "/home" },
     { label: "About", path: "/about" },
@@ -33,14 +46,27 @@ export default function Navbar({ navigate, scrolled, currentRoute }) {
       }}
     >
       {/* LEFT */}
-      <div style={{ display: "flex", alignItems: "center", gap: "36px" }}>
-        
+      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        {/* 🍔 MOBILE MENU */}
+        {isMobile && (
+          <div
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              fontSize: "22px",
+              cursor: "pointer",
+              color: "#fff",
+            }}
+          >
+            ☰
+          </div>
+        )}
+
         {/* LOGO */}
         <span
           onClick={() => navigate("/home")}
           style={{
             fontFamily: "'Bebas Neue'",
-            fontSize: "30px",
+            fontSize: isMobile ? "22px" : "30px",
             letterSpacing: "5px",
             color: "#E50914",
             cursor: "pointer",
@@ -50,78 +76,53 @@ export default function Navbar({ navigate, scrolled, currentRoute }) {
           HARSHADA KADAM
         </span>
 
-        {/* LINKS */}
-        <div style={{ display: "flex", gap: "22px" }}>
-          {links.map(({ label, path }) => {
-            const isActive = currentRoute === path;
+        {/* LINKS (DESKTOP ONLY) */}
+        {!isMobile && (
+          <div style={{ display: "flex", gap: "22px" }}>
+            {links.map(({ label, path }) => {
+              const isActive = currentRoute === path;
 
-            return (
-              <button
-                key={label}
-                onClick={() => navigate(path)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  color: isActive ? "#fff" : "#b3b3b3",
-                  letterSpacing: "0.4px",
-                  fontFamily: "'Barlow', sans-serif",
-                  position: "relative",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "#fff")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = isActive
-                    ? "#fff"
-                    : "#b3b3b3")
-                }
-              >
-                {label}
-
-                {/* UNDERLINE */}
-                <span
+              return (
+                <button
+                  key={label}
+                  onClick={() => navigate(path)}
                   style={{
-                    position: "absolute",
-                    bottom: "-4px",
-                    left: 0,
-                    width: isActive ? "100%" : "0%",
-                    height: "2px",
-                    background: "#E50914",
-                    transition: "width 0.3s ease",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: isActive ? "#fff" : "#b3b3b3",
+                    letterSpacing: "0.4px",
+                    fontFamily: "'Barlow', sans-serif",
+                    position: "relative",
                   }}
-                />
-              </button>
-            );
-          })}
-        </div>
+                >
+                  {label}
+
+                  <span
+                    style={{
+                      position: "absolute",
+                      bottom: "-4px",
+                      left: 0,
+                      width: isActive ? "100%" : "0%",
+                      height: "2px",
+                      background: "#E50914",
+                      transition: "width 0.3s ease",
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* RIGHT */}
       <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-        
-        {/* SEARCH */}
-        <span
-          style={{ color: "#b3b3b3", cursor: "pointer" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
-        >
-          🔍
-        </span>
+        <span style={{ color: "#b3b3b3", cursor: "pointer" }}>🔍</span>
+        <span style={{ color: "#b3b3b3", cursor: "pointer" }}>🔔</span>
 
-        {/* NOTIFICATION */}
-        <span
-          style={{ color: "#b3b3b3", cursor: "pointer" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
-        >
-          🔔
-        </span>
-
-        {/* PROFILE */}
         <div
           onClick={() => navigate("/profiles")}
           style={{
@@ -136,12 +137,53 @@ export default function Navbar({ navigate, scrolled, currentRoute }) {
             fontFamily: "'Bebas Neue'",
             fontSize: "15px",
             color: "#fff",
-            boxShadow: "0 0 0 2px rgba(229,9,20,0.3)",
           }}
         >
           HK
         </div>
       </div>
+
+      {/* 📱 MOBILE DROPDOWN MENU */}
+      {isMobile && menuOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "68px",
+            left: 0,
+            width: "100%",
+            background: "rgba(20,20,20,0.98)",
+            backdropFilter: "blur(10px)",
+            padding: "20px 4%",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+          }}
+        >
+          {links.map(({ label, path }) => {
+            const isActive = currentRoute === path;
+
+            return (
+              <button
+                key={label}
+                onClick={() => {
+                  navigate(path);
+                  setMenuOpen(false);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: isActive ? "#fff" : "#b3b3b3",
+                  fontSize: "16px",
+                  textAlign: "left",
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </nav>
   );
 }
